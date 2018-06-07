@@ -1,18 +1,17 @@
 from values import *
 
-class Player1():
+class Player2():
     def __init__(self, screen):
-#    def __init__(self, screen, pos, color):
         self.screen = screen
         self.reset()
 
     def reset(self):
         self.lost = False
-        self.x = SCREEN_SIZE[0] / 2 + scale * 2
-        self.y = SCREEN_SIZE[1] / 2 + scale * 2
-        self.direction = 2
+        self.x = SCREEN_SIZE[0] / 2 - scale * 2
+        self.y = SCREEN_SIZE[1] / 2 - scale * 2
+        self.direction = 0
         self.timeout = 0
-        self.origintime = 14
+        self.origintime = 10
         self.size = scale
         self.time = self.origintime
         self.xlist = [self.x]
@@ -20,48 +19,34 @@ class Player1():
 
     def draw(self):
         head = pygame.Surface((self.size, self.size))
-        head.fill(COLOR['yellow'])
+        head.fill(COLOR['player2'])
         w = head.get_width() / 2
         h = head.get_height() / 2
 
         tail = pygame.Surface((self.size, self.size))
-        tailf = pygame.Surface((self.size, self.size))
-        #tail2 = pygame.Surface((self.size, self.size))
-        tail.fill(COLOR['green'])
-        tailf.fill(COLOR['green'])
-        #tail2.fill(COLOR['green'])
-        pygame.draw.polygon(tail, COLOR['yellow'], ((0, 0), (self.size/4-1, self.size/2 -1), (0, self.size-1), (self.size-1, self.size/2 -1)), 0)
-        #pygame.draw.line(tail, COLOR['black'], (0, 0), (self.size-1, 0), 4)
-        #pygame.draw.line(tail, COLOR['black'], (self.size-1, self.size-1), (0, self.size-1), 4)
-        tail = pygame.transform.rotate(tail, 270)
-        tailf = tail
-        #tail0 = pygame.transform.rotate(tail, 0)
-        tail0 = tail
-        tail1 = pygame.transform.rotate(tail, 90)
-        tail2 = pygame.transform.rotate(tail, 180)
-        tail3 = pygame.transform.rotate(tail, 270)
+        tail1 = pygame.Surface((self.size, self.size))
+        tail2 = pygame.Surface((self.size, self.size))
+        tail.fill(COLOR['player2tail'])
+        tail1.fill(COLOR['player2tail'])
+        tail2.fill(COLOR['player2tail'])
+        pygame.draw.line(tail1, COLOR['yellow'], (self.size / 2, 0), (self.size / 2, self.size-1), 4)
+        pygame.draw.line(tail2, COLOR['yellow'], (self.size-1, self.size / 2), (0, self.size / 2), 4)
         tailw = tail.get_width() / 2
         tailh = tail.get_height() / 2
-        run = 0
-        while run <= len(self.xlist) - 1:
+        run = len(self.xlist) - 1
+        while run >= 0:
             if run > 0:
                 if self.xlist[run] == self.xlist[run-1]:
-                    if self.ylist[run] > self.ylist[run-1]:
-                        tail = tail2
-                    else:
-                        tail = tail0
+                    self.screen.blit(tail1, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
                 else:
-                    if self.xlist[run] > self.xlist[run-1]:
-                        tail = tail3
-                    else:
-                        tail = tail1
-
-                self.screen.blit(tail, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
+                    self.screen.blit(tail2, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
             else:
-                tailf = pygame.transform.rotate(tailf, self.direction * -90)
-                self.screen.blit(tailf, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
+                if self.direction == 0 or self.direction == 2:
+                    self.screen.blit(tail1, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
+                else:
+                    self.screen.blit(tail2, ( self.xlist[run] - tailw, self.ylist[run] - tailh))
 
-            run += 1
+            run -= 1
 
         self.screen.blit(head, ( self.x - w, self.y - h))
 
@@ -91,14 +76,16 @@ class Player1():
             self.collisionManager()
 
             #changes position of tailparts
-            for x in range(len(self.xlist) - 1, 0, -1):
-                #doesn't renew when the len value changes??
-                self.xlist[x] = self.xlist[x - 1]
-                self.ylist[x] = self.ylist[x - 1]
-
-            self.xlist[0] = self.x
-            self.ylist[0] = self.y
-
+            run = len(self.xlist) - 1
+            while run >= 0:
+                if run != 0:
+                    self.xlist[run] = self.xlist[run - 1]
+                    self.ylist[run] = self.ylist[run - 1]
+                    run -= 1
+                else:
+                    self.xlist[0] = self.x
+                    self.ylist[0] = self.y
+                    run -= 1
 
             #changes position of head
             self.x = self.x + (abs(abs(1 - self.direction) + 1) - 2) * self.size
@@ -112,6 +99,7 @@ class Player1():
     def collisionManager(self):
         run = len(self.xlist) - 1
         while run > 0:
+#            if run != 0:
             if self.xlist[run] == self.x and self.ylist[run] == self.y:
                 self.lost = True
 
